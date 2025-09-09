@@ -11,11 +11,11 @@ Currently in my **fourth year**, I’m passionate about technology, automation, 
 - 🌍 Currently in my **Erasmus exchange at SeoulTech (Korea)**.  
 
 ## 🎨 Hobbies & Interests
-- 💪 Going to the **gym** and keeping a consistent fitness routine.  
-- 🎬 Watching **films** of all kinds, from classics to new releases.  
+- 💪 Going to the **gym** and keeping a consistent fitness routine. 
+- 🎬 Watching **films** of all kinds, from classics to new releases.
 - 📖 Enjoying **reading**, especially books that are light, fun, and entertaining.
 
 ## 🔗 Links
-- [My University](https://www.ufv.es/)  
+- [My University](https://www.ufv.es)  
 - [SeoulTech](https://en.seoultech.ac.kr/)  
 - [GitHub](https://github.com/)  
