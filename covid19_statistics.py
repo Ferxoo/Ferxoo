@@ -30,7 +30,7 @@ print('* Total population:', sum_covid)
 print() # Print an empty line
 print('| Region | New Cases | Ratio (%) | New Cases/1M |')
 print('| ------ | --------- | --------- | ------------ |')
-for idx, cases in enumerate(n_covid):
-    ratio = cases / sum_covid * 100 # Calculate the ratio of new cases to each region’s population
-    print('| %s | %d | %.1f | %.1f |' % (regions[idx], cases, ratio, norm_covid[idx]))
+for idx, cas in enumerate(n_covid):
+    ratio = cas / sum_covid * 100 # Calculate the ratio of new cases to each region’s population
+    print('| %s | %d | %.1f | %.1f |' % (regions[idx], cas, ratio, norm_covid[idx]))
 print()
