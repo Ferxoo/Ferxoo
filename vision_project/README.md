@@ -1,58 +1,54 @@
-📘 Object Shape & Color Detection – README
-📝 Project Overview
+# 📘 Object Shape & Color Detection – README
+
+## 📝 Project Overview
 
 This project implements real-time object detection using a webcam, identifying shape and color of objects in the frame.
 The system uses Canny edge detection, contour analysis, and HSV color classification to detect objects and only saves the result when the SPACEBAR is pressed.
 
-This project does not store images, only metadata (timestamp + detected label) inside labels.csv.
+This project does not store images, only metadata (timestamp + detected label) inside `labels.csv`.
 
-The code is fully implemented by me, except for the following external libraries:
+The code is implemented using the following external libraries:
 
-OpenCV (cv2)
+- OpenCV (cv2)
 
-NumPy
+- NumPy
 
-Python Standard Library (os, csv, datetime)
+- Python Standard Library (os, csv, datetime)
 
-All portions of the code written for this project are my own original work.
-No external code has been copied without proper reference.
+# 🔧 Features
 
-🔧 Features
+- Live webcam detection
 
-Live webcam detection
+- Shape recognition:
 
-Shape recognition:
+  - Triangle
 
-Triangle
+  - Square
 
-Square
+  - Rectangle
 
-Rectangle
+  - Circle
 
-Circle
+- Color recognition (based on HSV)
 
-Color recognition (based on HSV):
+- Press SPACE to save the detection
 
-Red, Orange, Yellow, Green, Blue, Purple
+- Results stored as CSV (no images saved)
 
-White / Black
+- Adjustable parameters via UI trackbars
 
-Press SPACE to save the detection
+- Modular structure (main.py, detection.py, utils.py)
 
-Results stored as CSV (no images saved)
-
-Adjustable parameters via UI trackbars
-
-Modular structure (main.py, detection.py, utils.py)
-
-📂 Project Structure
-project/
+# 📂 Project Structure
+```bash
+vision_project/
 │
 ├── main.py           # Webcam loop, UI, CSV saving
 ├── detection.py      # Shape + color detection logic
 ├── utils.py          # Helper functions (HSV color naming, etc.)
 └── Detected_Objects/
       └── labels.csv  # Stored detections
+```
 
 ▶️ How to Run
 
