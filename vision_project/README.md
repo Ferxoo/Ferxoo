@@ -59,7 +59,11 @@ Simply modify in main.py:
 model = YOLO("yolov8n.pt")
 ```
 ## 🖼 Demonstration Screenshot
-!(assets/foto1.png)
+### YOLO Project Demo
+![Screenshot of YOLO Project Demo](assets/foto1.png)
+### Dataset Demo
+![Screenshot of Dataset Demo](assets/foto2.png)
+![Screenshot of Input Dataset Demo](assets/foto3.png)
 
 ## 📄 License
 This project is under the MIT License, which allows you to modify, distribute, and use the code freely for personal or academic purposes.
