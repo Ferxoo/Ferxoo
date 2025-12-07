@@ -1,6 +1,6 @@
 # 📘 YOLO Object Detection & Dataset Builder – README📝 
 ## Project Overview
-This project implements a real-time object detection system using Ultralytics YOLO (YOLOv8) via a webcam. The system detects objects, displays the most stable label, and allows saving detections to a CSV file simply by pressing the spacebar. Additionally, the project includes a Dataset Builder that allows capturing images from the camera and labeling them manually to build custom datasets (It prepares custom datasets for future training, but does not perform detection or classification on its own).
+This project implements a real-time object detection system using Ultralytics YOLO (YOLOv8/YOLOv11) via a webcam. The system detects objects, displays the most stable label, and allows saving detections to a CSV file simply by pressing the spacebar. Additionally, the project includes a Dataset Builder that allows capturing images from the camera and labeling them manually to build custom datasets (It prepares custom datasets for future training, but does not perform detection or classification on its own).
 ## 🔧 Features
 ### ✅ YOLO Object Detection Mode
 - Real-time detector based on YOLO (Ultralytics)
