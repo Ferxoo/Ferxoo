@@ -52,11 +52,14 @@ By default, the following is used:\
 You can replace it with other models:
 - yolov8s.pt → More precision
 - yolov8m.pt → Better performance
-- yolov8n.pt → Faster\
+- yolov8n.pt → Faster
+
 Simply modify in main.py:
 ```bash
 model = YOLO("yolov8n.pt")
 ```
 ## 🖼 Demonstration Screenshot
+!(assets/foto1.png)
+
 ## 📄 License
 This project is under the MIT License, which allows you to modify, distribute, and use the code freely for personal or academic purposes.
