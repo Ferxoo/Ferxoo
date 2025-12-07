@@ -72,7 +72,7 @@ def main():
         if stable_frames >= REQUIRED_STABLE_FRAMES:
             last_label = stable_label
 
-        # --- Draw ---
+        # --- Draw Bar ---
         if last_label:
             cv2.putText(frame, f"{last_label}", (10, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
