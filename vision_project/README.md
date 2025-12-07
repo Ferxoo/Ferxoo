@@ -15,8 +15,9 @@ This project implements a real-time object detection system using Ultralytics YO
 - Saves images and annotations (CSV)
 - Ideal for creating your own dataset for YOLO training
 
-## 📂 Project Structurevision_project/
+## 📂 Project Structure
 ```bash
+vision_project/
 │
 ├── main.py                 # YOLO detection system
 ├── dataset_builder.py      # Manual dataset capture tool
@@ -51,11 +52,11 @@ By default, the following is used:\
 You can replace it with other models:
 - yolov8s.pt → More precision
 - yolov8m.pt → Better performance
-- yolov8n.pt → Faster
+- yolov8n.pt → Faster\
 Simply modify in main.py:
 ```bash
 model = YOLO("yolov8n.pt")
 ```
-🖼 Demonstration Screenshot(Insert a screenshot of your running program here before submission)
+## 🖼 Demonstration Screenshot
 ## 📄 License
 This project is under the MIT License, which allows you to modify, distribute, and use the code freely for personal or academic purposes.
