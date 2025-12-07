@@ -50,28 +50,29 @@ vision_project/
       └── labels.csv  # Stored detections
 ```
 
-▶️ How to Run
+# ▶️ How to Run
 
 1. Install dependencies
-pip install opencv-python numpy
+```bash 
+pip install opencv-python nump
+```
 
 2. Run the program
+```bash
 python main.py
+````
 
 3. Key controls
-Key Action
-SPACE Save the most recent detection to CSV
-q Quit the program
+
+| Key   | Action|
+|:-----:|:-----------------------------------:|
+| SPACE |Save the most recent detection to CSV|
+| q     |Quit the program|
 🖼 Demonstration Screenshot
 
 (Replace the placeholder with a real screenshot before submission!)
 
-📊 Example CSV Output
-Timestamp,Label
-20250112_153210,Blue Circle
-20250112_153242,Red Rectangle
-
-⚙️ Dependencies
+# ⚙️ Dependencies
 
 Python 3.8+
 
