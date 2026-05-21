@@ -1,0 +1,182 @@
+%% ═══════════════════════════════════════════════════════════════
+%% IRB 1200 Open-Source Collision Avoidance Simulation
+%% Author      : Fernando Aquilino Gatell Valor
+%% Institution : Universidad Francisco de Vitoria
+%%               Grado en Ingeniería en Sistemas Industriales
+%% Tutor       : Roque Antonio Peña Pidal
+%% Academic yr : 2024/25
+%% MATLAB       : R2025b | Robotics System Toolbox
+%% ═══════════════════════════════════════════════════════════════
+%%
+%% Description
+%%   Master script that runs the full simulation demo end-to-end:
+%%   1. Environment setup (paths, toolbox check, URDF verification)
+%%   2. Robot model loading and kinematics validation
+%%   3. Quick single-run planner comparison on Scenario 2
+%%   4. Live SSM simulation with RRT* + approaching operator
+%%   5. Result plots (SSM log, joint path)
+%%   6. (Optional) Full 30-iter benchmark with all algorithms
+%%
+%% Usage
+%%   cd irb1200_simulation
+%%   main_simulation
+%% ═══════════════════════════════════════════════════════════════
+
+clear;  clc;  close all;
+
+%% ─── STEP 1: Environment setup ──────────────────────────────
+setup_environment();
+
+%% ─── STEP 2: Load and validate robot model ──────────────────
+fprintf('\n[1/5] Loading ABB IRB 1200 5/90 from URDF...\n');
+robot = load_irb1200();
+validate_kinematics(robot);
+
+% Fig 4.2 — Home config and q1=+90° side by side
+fprintf('  Generating Fig 4.2 (robot reference configurations)...\n');
+draw_robot_configs(robot);
+
+%% ─── STEP 3: Quick planner comparison — Scenario 2 ──────────
+fprintf('\n[2/5] Planning on Scenario 2 (central box obstacle)...\n');
+% EE positions on opposite sides of the obstacles
+fprintf('      Start: [-90º, 70º, 0º, 0º, 0º, 0º]\n');
+fprintf('      Goal : [90º, 70º, 0º, 0º, 0º, 0º]\n');
+
+obstacles = build_scenario(2);
+% Configs whose straight-line Cartesian path crosses the obstacles
+q_start = deg2rad([-90; 70; 0; 0; 0; 0]);
+q_goal  = deg2rad([90;  70; 0; 0; 0; 0]);
+
+planners_list  = {'rrt', 'rrt_connect', 'rrt_star', 'apf'};
+paths_store    = cell(1, numel(planners_list));
+info_sc2_rrtst = [];   % keep RRT* info for Fig 4.7
+info_sc2_apf   = [];   % keep APF info for Fig 4.6
+
+for k = 1:numel(planners_list)
+    alg = planners_list{k};
+    switch alg
+        case 'rrt'
+            [p, i] = plan_rrt(robot, q_start, q_goal, obstacles, struct());
+        case 'rrt_connect'
+            [p, i] = plan_rrt_connect(robot, q_start, q_goal, obstacles, struct());
+        case 'rrt_star'
+            % Request tree export for Fig 4.7 (RRT* tree visualisation)
+            rrt_star_sc2_opts = struct('return_tree', true);
+            [p, i] = plan_rrt_star(robot, q_start, q_goal, obstacles, rrt_star_sc2_opts);
+            info_sc2_rrtst = i;
+        case 'apf'
+            [p, i] = plan_apf(robot, q_start, q_goal, obstacles, struct());
+            info_sc2_apf = i;
+    end
+    paths_store{k} = p;
+    fprintf('  %-14s  success=%-5s  time=%6.3f s  length=%s rad\n', ...
+            alg, mat2str(i.success), i.computation_time, ...
+            ternary(i.success, sprintf('%.3f', i.path_length), 'N/A'));
+end
+
+% Warn if mean path length is very short (obstacles may not block)
+total_length = sum(cellfun(@(p) sum(sqrt(sum(diff(p).^2, 2))), paths_store));
+if total_length / numel(planners_list) < 0.3
+    fprintf('[WARN] Average path length is very short (%.3f rad/planner). Obstacles may not be blocking the path.\n', ...
+            total_length / numel(planners_list));
+end
+
+% Fig 4.7 — RRT* exploration tree in Cartesian space
+if ~isempty(info_sc2_rrtst) && isfield(info_sc2_rrtst,'tree_nodes') && ...
+   info_sc2_rrtst.success
+    fprintf('  Generating Fig 4.7 (RRT* tree)...\n');
+    rrtst_path_sc2 = paths_store{strcmp(planners_list,'rrt_star')};
+    draw_rrtstar_tree(robot, rrtst_path_sc2, info_sc2_rrtst, obstacles);
+end
+
+% Fig 4.6 — APF local minimum example (Scenario 4, dense)
+fprintf('  Generating Fig 4.6 (APF local minimum on Scenario 4)...\n');
+draw_apf_localmin(robot);
+
+%% ─── STEP 4: Live SSM simulation with RRT* on free space ────
+% [Change 1.1] Use Scenario 1 (free space) for the SSM demo: path always
+% succeeds and the focus is on SSM behaviour, not obstacle avoidance.
+fprintf('\n[3/5] Running RRT* + SSM monitoring (operator: slow_then_stop)...\n');
+obs_ssm = build_scenario(1);   % free space — path guaranteed
+[rrt_star_path, rrt_star_info] = plan_rrt_star(robot, q_start, q_goal, obs_ssm, struct());
+
+% [Change 1.3] Ensure results/ folder exists before VideoWriter opens
+this_dir = fileparts(mfilename('fullpath'));
+if ~isfolder('results'), mkdir('results'); end
+ssm_opts = struct('animate',    true, ...
+                  'dt_nominal', 0.08, ...
+                  'save_video', true, ...                              % [Change 1.3]
+                  'video_path', fullfile(this_dir, 'results', 'ssm_simulation.mp4'));
+
+if rrt_star_info.success
+    fprintf('  RRT* planned in %.3f s (%d waypoints). Starting simulation...\n', ...
+            rrt_star_info.computation_time, size(rrt_star_path, 1));
+    % [Change 1.2] 'slow_then_stop': SLOW hold → STOP_REPLAN → safe retreat
+    sim_log = execute_with_ssm(robot, rrt_star_path, q_goal, obs_ssm, ...
+                               'slow_then_stop', ssm_opts);
+else
+    fprintf('  [WARN] RRT* failed on Scenario 1 (unexpected). Using stub log.\n');
+    sim_log = struct('time', 0, 'distance', 1.5, 'speed_factor', 1, ...
+                     'ssm_state', {{'NORMAL'}}, 'replan_times', [], ...
+                     'q', zeros(1,6), 'op_pos', [1.5, 0, 0]);
+end
+
+%% ─── STEP 5: Plots ───────────────────────────────────────────
+fprintf('\n[4/5] Generating result plots...\n');
+
+% Fig 5.5 + 5.6 — SSM distance and speed-factor time series
+draw_ssm_log(sim_log);
+
+% Joint trajectory of the RRT* path
+if ~isempty(rrt_star_path) && size(rrt_star_path,1) > 1
+    draw_path(rrt_star_path, 'RRT*');
+end
+
+% Fig 4.3 — 3D scene overview with Scenario 2
+fprintf('  Generating Fig 4.3 (3D scene with Scenario 2)...\n');
+draw_scenario_scene(robot, build_scenario(2));
+
+% Fig 4.4 — Distance calculation scheme
+fprintf('  Generating Fig 4.4 (distance calculation scheme)...\n');
+draw_distance_scheme(robot);
+
+% Fig 4.5 — SSM state machine diagram
+fprintf('  Generating Fig 4.5 (SSM state machine diagram)...\n');
+draw_ssm_states();
+
+% Fig 4.8 — slow_then_stop chronogram (analytical, no simulation needed)
+fprintf('  Generating Fig 4.8 (slow_then_stop timeline)...\n');
+draw_ssm_timeline();
+
+% Fig 5.1 — Top-down view of all 4 scenarios
+fprintf('  Generating Fig 5.1 (scenarios top view)...\n');
+draw_scenario_topview(robot);
+
+% Fig 5.7 — RRT* convergence (from the SSM-demo single run)
+if rrt_star_info.success && isfield(rrt_star_info,'length_history')
+    fprintf('  Generating Fig 5.7 (RRT* convergence)...\n');
+    draw_convergence(rrt_star_info, 1);   % Scenario 1 run
+end
+
+% All 4 scenarios 3D overview (individual windows)
+fprintf('  Generating all-scenarios 3D overview...\n');
+visualize_all_scenarios(robot);
+
+%% ─── STEP 6: Full benchmark (optional — ~10-30 min) ─────────
+fprintf('\n[5/5] Full benchmark (uncomment lines below to run):\n');
+fprintf('      ~%d min on a modern workstation.\n', ...
+        round(4 * 4 * 30 * 2.5 / 60));  % rough estimate
+
+% Uncomment to run:
+bench_opts = struct('n_iter', 30, 'verbose', true);
+bench_results = run_benchmark(robot, bench_opts);
+stats = aggregate_stats(bench_results);
+save_results(bench_results, stats);
+draw_benchmark(stats);
+
+fprintf('\n✓ Simulation complete. Results in: %s\n', fullfile(this_dir, 'results'));
+
+%% ── Local helper ─────────────────────────────────────────────
+function out = ternary(cond, a, b)
+    if cond, out = a; else, out = b; end
+end
