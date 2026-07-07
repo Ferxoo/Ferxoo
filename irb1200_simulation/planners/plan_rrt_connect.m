@@ -1,30 +1,3 @@
-%% ─────────────────────────────────────────────────────────────
-% File        : plan_rrt_connect.m
-% Project     : Open-Source MATLAB Simulation — ABB IRB 1200
-% Author      : Fernando Aquilino Gatell Valor
-% Institution : Universidad Francisco de Vitoria — PFG 2024/25
-% MATLAB      : R2025b | Robotics System Toolbox (NO Navigation Toolbox)
-% Description : Bidirectional RRT (RRT-Connect) planner. Grows two trees
-%               simultaneously — one from start, one from goal — and uses
-%               a greedy CONNECT step to merge them. Typically 2-3× faster
-%               than unidirectional RRT on single-query problems.
-%               Reference: Kuffner, J.J. & LaValle, S.M. (2000).
-%               RRT-Connect: An efficient approach to single-query path
-%               planning. ICRA 2000.
-% Inputs      : robot     — rigidBodyTree (DataFormat='column')
-%               q_start   — 6×1 double [rad]
-%               q_goal    — 6×1 double [rad]
-%               obstacles — cell array of obstacle structs
-%               opts      — struct with optional fields:
-%                  .max_iterations (default 3000)
-%                  .goal_bias      (default 0.05)
-%                  .max_conn_dist  (default 0.20 [rad])
-%                  .val_step       (default 0.05 [rad])
-%                  .timeout        (default 10.0 [s])
-% Outputs     : path — N×6 double [rad];  info — result struct
-% Dependencies: get_joint_limits, getTransform (Robotics System Toolbox)
-%% ─────────────────────────────────────────────────────────────
-
 function [path, info] = plan_rrt_connect(robot, q_start, q_goal, obstacles, opts)
 
 narginchk(4, 5);
@@ -42,49 +15,37 @@ assert(numel(q_goal) ==6, 'plan_rrt_connect: q_goal must be 6×1.');
 
 limits = get_joint_limits();
 
-%% Two-tree initialisation ─────────────────────────────────────
-% Tree A grows from start; Tree B grows from goal.
 nodesA   = q_start';   parentsA = 0;
 nodesB   = q_goal';    parentsB = 0;
 
 success   = false;
-midxA     = 0;    % meeting node index in tree A
-midxB     = 0;    % meeting node index in tree B
+midxA     = 0;    
+midxB     = 0;   
 
 t_start = tic;
 iter    = 0;
 
-%% BiRRT main loop ─────────────────────────────────────────────
 for iter = 1:opts.max_iterations
 
-    %% Sample random config (uniform; no goal bias for BiRRT)
     q_rand = limits(:,1)' + rand(1,6) .* (limits(:,2)-limits(:,1))';
 
-    %% Extend tree A toward q_rand
-    [nodesA, parentsA, newA] = extendTree(nodesA, parentsA, q_rand, ...
-                                          robot, obstacles, opts, limits);
+    [nodesA, parentsA, newA] = extendTree(nodesA, parentsA, q_rand, robot, obstacles, opts, limits);
     if newA > 0
-        % CONNECT step: try to reach the new A node from the nearest B node
         q_new_A = nodesA(newA,:);
         [close_B, dB] = nearestIdx(nodesB, q_new_A);
 
-        if dB <= opts.max_conn_dist && ...
-           isPathFree(robot, nodesB(close_B,:), q_new_A, obstacles, opts.val_step)
+        if dB <= opts.max_conn_dist && isPathFree(robot, nodesB(close_B,:), q_new_A, obstacles, opts.val_step)
             midxA = newA;  midxB = close_B;
             success = true;  break;
         end
     end
 
-    %% Extend tree B toward q_rand (swap roles each iteration)
-    [nodesB, parentsB, newB] = extendTree(nodesB, parentsB, q_rand, ...
-                                          robot, obstacles, opts, limits);
+    [nodesB, parentsB, newB] = extendTree(nodesB, parentsB, q_rand, robot, obstacles, opts, limits);
     if newB > 0
-        % CONNECT step: try to reach the new B node from the nearest A node
         q_new_B = nodesB(newB,:);
         [close_A, dA] = nearestIdx(nodesA, q_new_B);
 
-        if dA <= opts.max_conn_dist && ...
-           isPathFree(robot, nodesA(close_A,:), q_new_B, obstacles, opts.val_step)
+        if dA <= opts.max_conn_dist && isPathFree(robot, nodesA(close_A,:), q_new_B, obstacles, opts.val_step)
             midxA = close_A;  midxB = newB;
             success = true;  break;
         end
@@ -95,11 +56,10 @@ end
 
 elapsed = toc(t_start);
 
-%% Assemble bidirectional path ─────────────────────────────────
 if success
-    pathA    = tracePath(nodesA, parentsA, midxA);   % start → meeting
-    pathB    = tracePath(nodesB, parentsB, midxB);   % goal  → meeting → reverse
-    raw_path = [pathA; flip(pathB, 1)];              % start → meeting → goal
+    pathA    = tracePath(nodesA, parentsA, midxA);   
+    pathB    = tracePath(nodesB, parentsB, midxB);   
+    raw_path = [pathA; flip(pathB, 1)];              
     path     = shortcutPath(raw_path, robot, obstacles, opts.val_step);
 else
     path = zeros(0, 6);
@@ -108,17 +68,10 @@ end
 info.success          = success;
 info.computation_time = elapsed;
 info.num_iterations   = iter;
-info.path_length      = ternary(success && size(path,1)>1, ...
-                                sum(vecnorm(diff(path),2,2)), NaN);
+info.path_length      = ternary(success && size(path,1)>1, sum(vecnorm(diff(path),2,2)), NaN);
 end
 
-%% ══════════════════════════════════════════════════════════════
-%% Local helpers
-%% ══════════════════════════════════════════════════════════════
-
-function [nodes, parents, new_idx] = extendTree(nodes, parents, q_target, ...
-                                                 robot, obstacles, opts, limits)
-% Extend the tree one step toward q_target; returns new node index (0 if blocked).
+function [nodes, parents, new_idx] = extendTree(nodes, parents, q_target, robot, obstacles, opts, limits)
     [ni, ~]  = nearestIdx(nodes, q_target);
     q_near   = nodes(ni,:);
     d        = norm(q_target - q_near);
@@ -211,7 +164,7 @@ function path = tracePath(nodes, parents, leaf_idx)
     idx = leaf_idx;  indices = leaf_idx;
     while parents(idx) ~= 0
         idx = parents(idx);
-        indices = [idx, indices];  %#ok<AGROW>
+        indices = [idx, indices];
     end
     path = nodes(indices, :);
 end
@@ -229,10 +182,6 @@ function out = ternary(cond, a, b)
 end
 
 function path = shortcutPath(raw_path, robot, obstacles, val_step)
-% Greedy O(N²) shortcutting with up to 15-node lookahead.
-% Iteratively tries to replace the segment i→i+1→…→j with a direct edge i→j.
-% A shortcut is accepted only when the straight joint-space segment is
-% collision-free. Multiple passes are performed until no improvement is found.
     path    = raw_path;
     changed = true;
     while changed
@@ -253,8 +202,6 @@ function path = shortcutPath(raw_path, robot, obstacles, val_step)
 end
 
 function free = isSegmentFree(q1, q2, robot, obstacles, step)
-% Returns true when the straight joint-space edge from q1 to q2 is free
-% of collisions, checked at uniform intervals of 'step' radians.
     if isempty(obstacles), free = true; return; end
     d = norm(q2 - q1);
     if d < 1e-8, free = ~isInCollision(robot, q1, obstacles); return; end
@@ -269,8 +216,6 @@ function free = isSegmentFree(q1, q2, robot, obstacles, step)
 end
 
 function hit = isInCollision(robot, q, obstacles)
-% Conservative sphere-based collision check (same approximation as isConfigFree).
-% Returns true if any link sphere overlaps any obstacle bounding sphere.
     BODY_NAMES = {'link_1','link_2','link_3','link_4','link_5','link_6','tool0'};
     LINK_RADII = [ 0.055,   0.055,   0.050,   0.040,   0.038,   0.030,   0.020];
     MARGIN     = 0.015;
