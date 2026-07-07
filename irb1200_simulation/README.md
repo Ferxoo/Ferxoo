@@ -16,8 +16,7 @@ The project was developed as a Final Degree Project (PFG) at Universidad Francis
 | **Institution** | Universidad Francisco de Vitoria — Escuela Politécnica Superior |
 | **Degree** | Grado en Ingeniería en Sistemas Industriales |
 | **Tutor** | Roque Antonio Peña Pidal |
-| **Academic year** | 2024/25 |
-| **Exchange** | Seoultech — Seoul National University of Science and Technology (2025) |
+| **Academic year** | 2025/26 |
 
 ---
 
@@ -25,8 +24,8 @@ The project was developed as a Final Degree Project (PFG) at Universidad Francis
 
 | Requirement | Notes |
 |---|---|
-| MATLAB R2022b or later | Tested on **R2025b**. R2022b+ required for `plannerRRTStar`, `plannerBiRRT` |
-| **Robotics System Toolbox** | **Mandatory.** Provides `importrobot`, `rigidBodyTree`, `plannerRRT`, `plannerRRTStar`, `plannerBiRRT`, `validatorRigidBodyTree` |
+| MATLAB R2025b | Tested on **R2025b**. All planners are custom implementations — no toolbox version constraint beyond R2025b. |
+| **Robotics System Toolbox** | **Mandatory.** Used only for `importrobot`, `rigidBodyTree`, `getTransform`, and `checkCollision`. |
 | Statistics and Machine Learning Toolbox | Recommended for benchmark statistics; built-in `mean`/`std` functions are used as fallback |
 | **abb-noetic-devel** folder | Must be present in the parent directory (see Quick Start) |
 
@@ -130,7 +129,7 @@ ASCII state diagram:
            d ≤ 1.0 m                      d ≤ 0.5 m
   NORMAL ──────────────► SLOW ──────────────────► STOP_REPLAN
     ▲                      │                           │
-    │      d ≥ 1.05 m      │           d ≥ 0.55 m     │
+    │      d ≥ 1.05 m      │           d ≥ 0.55 m      │
     └──────────────────────┘ ◄─────────────────────────┘
 ```
 
@@ -141,8 +140,8 @@ ASCII state diagram:
 | ID | Name | Description | Obstacles |
 |---|---|---|---|
 | 1 | Free space | Unobstructed workspace; baseline | 0 |
-| 2 | Central box | Single 150×150×400 mm box at [0.38, 0, 0.2] m | 1 box |
-| 3 | Corridor | Two 50×500×600 mm walls creating a passage | 2 boxes |
+| 2 | Central box | Single 180×350×450 mm box at [0.32, 0, 0.30] m | 1 box |
+| 3 | Corridor | Two 60×600×700 mm walls creating a passage | 2 boxes |
 | 4 | Dense | Mixed boxes and cylinders across full workspace | 5 (3 boxes + 2 cylinders) |
 
 ---
@@ -172,11 +171,11 @@ MIT License — see [LICENSE](LICENSE).
   title       = {Open-Source MATLAB Simulation Environment for Collision
                  Avoidance on the ABB IRB 1200},
   school      = {Universidad Francisco de Vitoria},
-  year        = {2025},
+  year        = {2026},
   type        = {Trabajo de Fin de Grado (PFG)},
   program     = {Grado en Ingeniería en Sistemas Industriales},
   address     = {Pozuelo de Alarcón, Madrid, Spain},
-  note        = {Tutor: Roque Antonio Peña Pidal. Exchange: Seoultech 2025.}
+  note        = {Tutor: Roque Antonio Peña Pidal.}
 }
 ```
 
