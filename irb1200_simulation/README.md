@@ -166,7 +166,7 @@ MIT License — see [LICENSE](LICENSE).
 ## Citation
 
 ```bibtex
-@mastersthesis{GatellValor2025IRB1200,
+@graduationthesis{GatellValor2025IRB1200,
   author      = {Gatell Valor, Fernando Aquilino},
   title       = {Open-Source MATLAB Simulation Environment for Collision
                  Avoidance on the ABB IRB 1200},
