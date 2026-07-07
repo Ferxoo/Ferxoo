@@ -1,34 +1,17 @@
-%% ─────────────────────────────────────────────────────────────
-% File        : save_results.m
-% Project     : Open-Source MATLAB Simulation — ABB IRB 1200
-% Author      : Fernando Aquilino Gatell Valor
-% Institution : Universidad Francisco de Vitoria — PFG 2024/25
-% MATLAB      : R2025b | Robotics System Toolbox
-% Description : Saves benchmark results to disk (.mat and .csv) and
-%               prints a formatted ASCII summary table to the console.
-% Inputs      : results — struct array from run_benchmark
-%               stats   — struct array from aggregate_stats
-% Outputs     : none (side-effects: files written to results/)
-% Dependencies: writetable (MATLAB built-in)
-%% ─────────────────────────────────────────────────────────────
-
 function save_results(results, stats)
 
 narginchk(2, 2);
 
-% Ensure output directory exists
 this_dir    = fileparts(mfilename('fullpath'));
 results_dir = fullfile(this_dir, '..', 'results');
 if ~isfolder(results_dir)
     mkdir(results_dir);
 end
 
-%% 1 — Save .mat ───────────────────────────────────────────────
 mat_path = fullfile(results_dir, 'benchmark_raw.mat');
 save(mat_path, 'results', 'stats');
 fprintf('[save_results] .mat saved: %s\n', mat_path);
 
-%% 2 — Build summary table ─────────────────────────────────────
 [n_sc, n_alg] = size(stats);
 
 scenario_col    = zeros(n_sc * n_alg, 1);
@@ -67,12 +50,10 @@ T = table(scenario_col, algorithm_col, success_col, ...
                       'length_mean_rad','length_std_rad', ...
                       'jerk_mean_rad_s3','jerk_std_rad_s3'});
 
-%% 3 — Write CSV ───────────────────────────────────────────────
 csv_path = fullfile(results_dir, 'benchmark_summary.csv');
 writetable(T, csv_path);
 fprintf('[save_results] CSV saved: %s\n', csv_path);
 
-%% 4 — Print ASCII summary table ──────────────────────────────
 sc_names = {'Free space', 'Central box', 'Corridor', 'Dense'};
 
 fprintf('\n');
@@ -98,11 +79,8 @@ for s = 1:n_sc
             if isempty(idx), sc_label = sprintf('Sc%d', st.scenario);
             else, sc_label = sc_names{idx}; end
         end
-        len_str = sprintf('%.3f±%.3f', nandefault(st.length_mean, NaN), ...
-                                        nandefault(st.length_std, NaN));
-        fprintf('║ %-8s ║ %-12s ║ %5.1f%% ║ %6.3f ± %6.3f s ║ %-17s ║\n', ...
-                sc_label, st.algorithm, st.success_rate, ...
-                st.time_mean, st.time_std, len_str);
+        len_str = sprintf('%.3f±%.3f', nandefault(st.length_mean, NaN), nandefault(st.length_std, NaN));
+        fprintf('║ %-8s ║ %-12s ║ %5.1f%% ║ %6.3f ± %6.3f s ║ %-17s ║\n', sc_label, st.algorithm, st.success_rate, st.time_mean, st.time_std, len_str);
     end
 end
 
@@ -111,7 +89,6 @@ fprintf('\n');
 
 end
 
-%% ── Local helper ─────────────────────────────────────────────
 function v = nandefault(x, d)
     if isnan(x), v = d; else, v = x; end
 end
